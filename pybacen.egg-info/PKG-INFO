@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: pybacen
+Version: 1.0.7
+Summary: Dados de series temporais disponibilizados pelo Bacen
+Home-page: UNKNOWN
+Author: Rafael Pereira de Castro
+Author-email: rafael.castro07@outlook.com
+License: MIT
+Keywords: bacen,pybacen,series bacen
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.6, <4
+
+UNKNOWN
+
