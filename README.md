@@ -2,7 +2,6 @@
 
 <h3>This library was developed for economic analysis in the Brazilian scenario (Investments, micro and macroeconomic indicators)</h3>
 
-⚠️ Under construction ⚠️
 
 ## Installation
 
