@@ -16,7 +16,7 @@ pip install pybacen
 
 #### Time Series Bacen
 ``` python
-from pybacen import time_series # Source: SGS - Sistema Gerenciador de Séries Temporais - v2.1 (Bacen - Banco Central)
+from pybacen.bacen import time_series # Source: SGS - Sistema Gerenciador de Séries Temporais - v2.1 (Bacen - Banco Central)
 
 # To consult the Bacen code, use it as a parameter when consulting the time series
 list_code_bacen = time_series.read_bacen_code(search_text='%CDI%ANUALIZADA%252%', period= 'D', unit= '% a.a.')
