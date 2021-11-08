@@ -17,29 +17,49 @@ class Stock_quote:
         self.user_agent = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"}
         self.quote_pattern_json = r"root\.App\.main = (.*?);\n}\(this\)\);"
 
-    def read_stock_quote(self, stock_code, start: str = None, end: str = None, as_index: bool = True) -> pd.core.frame.DataFrame:
-        url = f'https://finance.yahoo.com/quote/{stock_code}/history'
+    def read_stock_quote(self, stock_code: str or list, start: str = None, end: str = None, as_index: bool = True, pivot_table: bool = True) -> pd.core.frame.DataFrame:
         
-        response = requests.get(url,
-                                headers = self.user_agent
-                                )
+        full_quote = pd.DataFrame()
 
-        response = json.loads(re.search(self.quote_pattern_json, response.text, re.DOTALL).group(1))
+        type_validation = lambda x: [x] if type(x) == str else x if type(x) == list else None
 
-        reponse = response["context"]["dispatcher"]["stores"]["HistoricalPriceStore"]
+        stock_code = type_validation(stock_code)
 
-        quote = DataFrame(reponse['prices'])
+        if stock_code is not None:
+            for stock in stock_code:
+                url = f'https://finance.yahoo.com/quote/{stock}/history'
+                    
+                response = requests.get(url, headers = self.user_agent)
 
-        quote['date'] = to_datetime(to_datetime(quote["date"], unit="s").dt.date)
+                response = json.loads(re.search(self.quote_pattern_json, response.text, re.DOTALL).group(1))
 
-        start = start if start is not None else quote['date'].min()
-        end = end if end is not None else quote['date'].max()
+                reponse = response["context"]["dispatcher"]["stores"]["HistoricalPriceStore"]
 
-        quote = quote[(quote['date']>=start) & (quote['date']<=end)].copy()
+                quote = DataFrame(reponse['prices'])
 
-        if as_index == True:
-            quote.set_index('date', inplace=True)
+                quote['date'] = to_datetime(to_datetime(quote["date"], unit="s").dt.date)
 
-        quote = quote[['open', 'high', 'low', 'close', 'volume', 'adjclose']]
+                start = start if start is not None else quote['date'].min()
+                end = end if end is not None else quote['date'].max()
 
-        return quote
+                quote = quote[(quote['date']>=start) & (quote['date']<=end)].copy()
+
+                quote['stock_code'] = stock
+
+                quote = quote[['date', 'stock_code', 'open', 'high', 'low', 'close', 'volume', 'adjclose']]
+
+                full_quote = full_quote.append(quote, ignore_index=True)
+            
+            full_quote = full_quote.sort_values(by=['date', 'stock_code'])
+
+            if pivot_table == True:
+                full_quote = pd.pivot_table(full_quote, values=['open', 'high', 'low', 'close', 'adjclose'], index=['date'],
+                        columns=['stock_code'], aggfunc= lambda x: x)
+            else:
+                if as_index == True:
+                    full_quote.set_index('date', inplace=True)
+                    
+
+            return full_quote
+
+        print('Error: Verify your stock_code: str or list')
