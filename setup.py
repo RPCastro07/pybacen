@@ -4,11 +4,14 @@ import pathlib
 
 here = pathlib.Path(__file__).parent.resolve()
 
+long_description = (here / 'README.md').read_text(encoding='utf-8')
+
 setup(
  
     name='pybacen',  # Required
     version='1.0.7',  # Required
-    description='Dados de series temporais disponibilizados pelo Bacen',  # Optional
+    description='Economic analysis in the Brazilian scenario',  # Optional
+    long_description=long_description,
     author='Rafael Pereira de Castro',  # Optional
     author_email='rafael.castro07@outlook.com',  # Optional
 
@@ -34,6 +37,6 @@ setup(
     python_requires='>=3.6, <4',
 
 
-    install_requires=['pandas'],  # Optional
+    install_requires=['pandas', 'requests'],  # Optional
 
 )

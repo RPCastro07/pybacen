@@ -44,3 +44,11 @@ class Bacen_time_series:
         return result
         
 
+class Bacen_data:
+
+    def read_bacen_complaints(self, year: int, periodicity: str, period: int) -> pd.core.frame.DataFrame:
+        url = f'https://www3.bcb.gov.br/rdrweb/rest/ext/ranking/arquivo?ano={year}&periodicidade={periodicity.upper()}&periodo={period}&tipo=Bancos+e+financeiras'
+        
+        bc = pd.read_csv(url, sep=';', encoding='cp1252')
+
+        return bc
