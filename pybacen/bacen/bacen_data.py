@@ -1,4 +1,6 @@
 import pandas as pd 
+import requests
+import json
 
 try:
     pd.options.display.max_rows = 999
@@ -52,3 +54,48 @@ class Bacen_data:
         bc = pd.read_csv(url, sep=';', encoding='cp1252')
 
         return bc
+
+    # IF Data - Olinda
+    def read_list_reports(self) -> pd.core.frame.DataFrame:
+        response = requests.get('https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/ListaDeRelatorio()?%24format=json')
+
+        response = json.loads(response.content)
+
+        lr = pd.DataFrame(response['value'])
+
+        return lr
+
+    def read_registration_inst(self, limit: int = 100, filter: str = None, select: str = None) -> pd.core.frame.DataFrame:
+        print('Documentation: https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/documentacao')
+        print('Filters: https://olinda.bcb.gov.br/olinda/servico/ajuda')
+        print('Site IF.data: https://www3.bcb.gov.br/ifdata/')
+        
+        filter = f"&$filter={filter}'" if filter is not None else ''
+        select = f"$select={select}'" if filter is not None else ''
+
+        response = requests.get(f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataCadastro(AnoMes=@AnoMes)?@AnoMes=202106&$top={limit}{filter}&$orderby=NomeInstituicao%20asc&$format=json{select}")
+
+        json_list = json.loads(response.content)
+
+        ri = pd.DataFrame(json_list['value'])
+
+        return ri
+
+    def read_report_inst(self, year_month: str, type_inst: int, num_report: str, limit: int = 100, filter: str = None, select: str = None) -> pd.core.frame.DataFrame:
+        print('Documentation: https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/documentacao')
+        print('Filters: https://olinda.bcb.gov.br/olinda/servico/ajuda')
+        print('Site IF.data: https://www3.bcb.gov.br/ifdata/')
+        
+        filter = f"&$filter={filter}'" if filter is not None else ''
+        select = f"$select={select}'" if filter is not None else ''
+
+        resp = requests.get(f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataValores(AnoMes=@AnoMes,TipoInstituicao=@TipoInstituicao,Relatorio=@Relatorio)?@AnoMes={year_month}&@TipoInstituicao={type_inst}&@Relatorio='{num_report}'&$top={limit}{filter}&$format=json{select}")
+
+        json_list = json.loads(resp.content)
+
+        rep = pd.DataFrame(json_list['value'])
+
+        return rep
+
+
+
