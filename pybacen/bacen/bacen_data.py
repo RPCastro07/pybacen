@@ -57,7 +57,10 @@ class Bacen_data:
 
     # IF Data - Olinda
     def read_list_reports(self) -> pd.core.frame.DataFrame:
-        response = requests.get('https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/ListaDeRelatorio()?%24format=json')
+        
+        url = 'https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/ListaDeRelatorio()?%24format=json'
+        
+        response = requests.get(url)
 
         response = json.loads(response.content)
 
@@ -65,15 +68,19 @@ class Bacen_data:
 
         return lr
 
-    def read_registration_inst(self, limit: int = 100, filter: str = None, select: str = None) -> pd.core.frame.DataFrame:
+    def important_link_olinda(self):
         print('Documentation: https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/documentacao')
         print('Filters: https://olinda.bcb.gov.br/olinda/servico/ajuda')
         print('Site IF.data: https://www3.bcb.gov.br/ifdata/')
+
+    def read_registration_inst(self, limit: int = 100, filter: str = None, select: str = None) -> pd.core.frame.DataFrame:
+
         
         filter = f"&$filter={filter}'" if filter is not None else ''
-        select = f"$select={select}'" if filter is not None else ''
+        select = f"&$select={select}'" if filter is not None else ''
 
-        response = requests.get(f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataCadastro(AnoMes=@AnoMes)?@AnoMes=202106&$top={limit}{filter}&$orderby=NomeInstituicao%20asc&$format=json{select}")
+        url = f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataCadastro(AnoMes=@AnoMes)?@AnoMes=202106&$top={limit}{filter}&$orderby=NomeInstituicao%20asc&$format=json{select}"
+        response = requests.get(url, headers={'Cache-Control': 'no-cache'})
 
         json_list = json.loads(response.content)
 
@@ -82,20 +89,18 @@ class Bacen_data:
         return ri
 
     def read_report_inst(self, year_month: str, type_inst: int, num_report: str, limit: int = 100, filter: str = None, select: str = None) -> pd.core.frame.DataFrame:
-        print('Documentation: https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/documentacao')
-        print('Filters: https://olinda.bcb.gov.br/olinda/servico/ajuda')
-        print('Site IF.data: https://www3.bcb.gov.br/ifdata/')
-        
-        filter = f"&$filter={filter}'" if filter is not None else ''
-        select = f"$select={select}'" if filter is not None else ''
+       
 
-        resp = requests.get(f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataValores(AnoMes=@AnoMes,TipoInstituicao=@TipoInstituicao,Relatorio=@Relatorio)?@AnoMes={year_month}&@TipoInstituicao={type_inst}&@Relatorio='{num_report}'&$top={limit}{filter}&$format=json{select}")
+        filter = f"&$filter={filter}'" if filter is not None else ''
+        select = f"&$select={select}'" if filter is not None else ''
+
+        url = f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataValores(AnoMes=@AnoMes,TipoInstituicao=@TipoInstituicao,Relatorio=@Relatorio)?@AnoMes={year_month}&@TipoInstituicao={type_inst}&@Relatorio='{num_report}'&$top={limit}{filter}&$format=json{select}"
+
+        resp = requests.get(url, headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
 
         json_list = json.loads(resp.content)
 
         rep = pd.DataFrame(json_list['value'])
 
         return rep
-
-
 
