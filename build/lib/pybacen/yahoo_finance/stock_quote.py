@@ -117,5 +117,5 @@ class Stock_quote:
 
         return df
 
-    def boxplot(df: pd.core.frame.DataFrame,  x: str = 'stock_code', y: str = 'adjclose', color: str = 'stock_code', template: str = 'plotly_dark'):
+    def boxplot(self, df: pd.core.frame.DataFrame,  x: str = 'stock_code', y: str = 'adjclose', color: str = 'stock_code', template: str = 'plotly_dark'):
         return box(df, x = x, y = y, color = color, template = template)
