@@ -3,6 +3,10 @@ import requests
 import re
 import pandas as pd
 from pandas import DataFrame, to_datetime
+from plotly.graph_objects import Figure, Candlestick, Line, Scatter
+from plotly.express import box
+import warnings
+
 
 try:
     pd.options.display.max_rows = 999
@@ -16,7 +20,7 @@ class Stock_quote:
         self.user_agent = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"}
         self.quote_pattern_json = r"root\.App\.main = (.*?);\n}\(this\)\);"
 
-    def read_stock_quote(self, stock_code: str or list, start: str = None, end: str = None, as_index: bool = True, pivot_table: bool = True) -> pd.core.frame.DataFrame:
+    def read_stock_quote(self, stock_code: str or list, start: str = None, end: str = None, as_index: bool = True, pivot_table: bool = False) -> pd.core.frame.DataFrame:
         
         full_quote = pd.DataFrame()
 
@@ -37,6 +41,8 @@ class Stock_quote:
                 quote = DataFrame(reponse['prices'])
 
                 quote['date'] = to_datetime(to_datetime(quote["date"], unit="s").dt.date)
+
+                quote = quote[quote['adjclose'].isnull() == False]
 
                 start = start if start is not None else quote['date'].min()
                 end = end if end is not None else quote['date'].max()
@@ -62,3 +68,54 @@ class Stock_quote:
             return full_quote
 
         print('Error: Verify your stock_code: str or list')
+
+    def candlestick(self, df: pd.core.frame.DataFrame, mov_avg: dict = None, template: str='plotly_dark'):
+        warnings.filterwarnings("ignore")
+        
+        def get_candlestick(df, mov_avg):
+            
+            fig = Figure(Candlestick(x=df.index, open=df['open'], high=df['high'], low=df['low'], close=df['close']))
+            fig.update_layout(xaxis_rangeslider_visible=False, 
+                            template=template,
+                            yaxis_title = 'Price', xaxis_title = 'Date', title= ''.join(df['stock_code'].unique())
+                            )
+
+            if mov_avg is not None:
+                for i in mov_avg:
+                    df[f'mov_avg_{i}'] = df['close'].rolling(window=i).mean()
+
+                    fig.add_trace(
+                        Scatter(
+                        x=df.index,
+                        y=df[f'mov_avg_{i}'],
+                        line = dict(color = mov_avg[i]),
+                        name = f'mov_avg_{i}'
+                        )
+                    )
+
+            fig.show()
+        
+        for i in df['stock_code'].unique():
+            get_candlestick(df[df['stock_code']== i], mov_avg)
+
+    
+    def describe(self, df: pd.core.frame.DataFrame, column_stats: str):
+    
+        df = df.groupby(['stock_code'], as_index=False).agg(
+            min = pd.NamedAgg(column= column_stats, aggfunc=min),
+            max = pd.NamedAgg(column= column_stats, aggfunc=max),
+            avg = pd.NamedAgg(column= column_stats, aggfunc='mean'),
+            count = pd.NamedAgg(column= column_stats, aggfunc='count'),
+            q25 = pd.NamedAgg(column= column_stats, aggfunc= lambda x: x.quantile(0.25)),
+            q50 = pd.NamedAgg(column= column_stats, aggfunc='median'),
+            q75 = pd.NamedAgg(column= column_stats, aggfunc= lambda x: x.quantile(0.75)),
+            std = pd.NamedAgg(column= column_stats, aggfunc= 'std'),
+            return_ = pd.NamedAgg(column= column_stats, aggfunc= lambda x: x[-1] / x[0] - 1)
+        )
+
+        df['std/avg'] = df['std'] / df['avg']
+
+        return df
+
+    def boxplot(df: pd.core.frame.DataFrame,  x: str = 'stock_code', y: str = 'adjclose', color: str = 'stock_code', template: str = 'plotly_dark'):
+        return box(df, x = x, y = y, color = color, template = template)

@@ -6,3 +6,5 @@ def read_time_series(bacen_code: int, start: str = None, end: str = None, as_ind
 def read_bacen_code(search_text: str, period: str = None, unit: str = None):
     return bc_ts().read_bacen_code(search_text, period, unit)
 
+def line_plot(dfs: list, title: str, xtitle: str= 'Date', ytitle: str= 'Values', template: str='plotly_dark'):
+   return bc_ts().line_plot(dfs, title, xtitle, ytitle, template)

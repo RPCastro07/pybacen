@@ -1,6 +1,9 @@
+from warnings import filterwarnings
 import pandas as pd 
 import requests
 import json
+from plotly.graph_objects import Figure, Scatter
+
 
 try:
     pd.options.display.max_rows = 999
@@ -44,14 +47,50 @@ class Bacen_time_series:
             result = result[result['UNIDADE'].str.strip().str.upper()==unit.upper().strip()]
 
         return result
+    
+    def line_plot(self, dfs: list, title: str, xtitle: str = 'Date', ytitle: str = 'Values', template: str = 'plotly_dark'):
+    
+        filterwarnings("ignore")
         
+        dates = dfs[0][0].index
+        
+        
+        for iteration, i in enumerate(dfs):
+            
+            df = i[0][i[0].index.isin(dates)].copy()
+            
+            if iteration == 0:
+                fig = Figure(Scatter(
+                        x=df.index,
+                        y=df['valor'],
+                        line = dict(color = i[2]),
+                        name = i[1]
+                        ))
+                
+                fig.update_layout(xaxis_rangeslider_visible=False,
+                                template = template,
+                                yaxis_title = ytitle, 
+                                xaxis_title = xtitle,
+                                title = title
+                                )
+                    
+            else:
+                fig.add_trace(Scatter(
+                                    x=df.index,
+                                    y=df['valor'],
+                                    line = dict(color = i[2]),
+                                    name = i[1]
+                                    )
+                            )
+        fig.show() 
+            
 
 class Bacen_data:
 
     def read_bacen_complaints(self, year: int, periodicity: str, period: int) -> pd.core.frame.DataFrame:
         url = f'https://www3.bcb.gov.br/rdrweb/rest/ext/ranking/arquivo?ano={year}&periodicidade={periodicity.upper()}&periodo={period}&tipo=Bancos+e+financeiras'
         
-        bc = pd.read_csv(url, sep=';', encoding='cp1252')
+        bc = pd.read_csv(url, sep = ';', encoding='cp1252')
 
         return bc
 

@@ -51,12 +51,13 @@ Using pandas datareader requires the following packages:
 
 -   pandas>=1.0
 -   requests>=2.19.0
+-   plotly>=5.3.1
 
 
 ### Install latest development version
 
 ``` shell
-python -m pip install pip install pybacen
+python -m pip install pybacen
 ```
 
 or
