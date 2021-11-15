@@ -3,6 +3,8 @@ from pybacen.bacen.bacen_data import Bacen_data as bd
 def read_bacen_complaints(year: int, periodicity: str, period: str):
     return bd().read_bacen_complaints(year, periodicity, period)
 
+def read_currency_quote(currency: str = 'USD', start: str = None, end: str = None, filter: str = None, select: str = None):
+    return bd().read_currency_quote(currency, start, end, filter, select)
 
 """
 def read_list_reports():

@@ -116,7 +116,7 @@ class Bacen_data:
 
         
         filter = f"&$filter={filter}'" if filter is not None else ''
-        select = f"&$select={select}'" if filter is not None else ''
+        select = f"&$select={select}'" if select is not None else ''
 
         url = f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataCadastro(AnoMes=@AnoMes)?@AnoMes=202106&$top={limit}{filter}&$orderby=NomeInstituicao%20asc&$format=json{select}"
         response = requests.get(url, headers={'Cache-Control': 'no-cache'})
@@ -131,7 +131,7 @@ class Bacen_data:
        
 
         filter = f"&$filter={filter}'" if filter is not None else ''
-        select = f"&$select={select}'" if filter is not None else ''
+        select = f"&$select={select}'" if select is not None else ''
 
         url = f"https://olinda.bcb.gov.br/olinda/servico/IFDATA/versao/v1/odata/IfDataValores(AnoMes=@AnoMes,TipoInstituicao=@TipoInstituicao,Relatorio=@Relatorio)?@AnoMes={year_month}&@TipoInstituicao={type_inst}&@Relatorio='{num_report}'&$top={limit}{filter}&$format=json{select}"
 
@@ -143,3 +143,25 @@ class Bacen_data:
 
         return rep
 
+
+    def read_currency_quote(self, currency: str = 'USD', start: str = None, end: str = None, filter: str = None, select: str = None) -> pd.core.frame.DataFrame:
+       
+        convert_date = lambda x: f"{x[5:7]}-{x[8:11]}-{x[0:4]}"
+
+        start = convert_date(start)
+        end = convert_date(end)
+
+        filter = f"&$filter={filter}'" if filter is not None else ''
+        select = f"&$select={select}'" if select is not None else ''
+
+        url = f"https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='{currency}'&@dataInicial='{start}'&@dataFinalCotacao='{end}'&$top=10000{filter}&$format=json{select}"
+
+        resp = requests.get(url)
+
+        resp
+
+        json_list = json.loads(resp.content)
+
+        df = pd.DataFrame(json_list['value'])
+
+        return df
