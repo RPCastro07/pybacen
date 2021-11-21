@@ -1,0 +1,1 @@
+QUOTE_PATTERN_JSON = r"root\.App\.main = (.*?);\n}\(this\)\);"
