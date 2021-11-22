@@ -56,7 +56,7 @@ def read_funds_quote(start: str,
         try:
             fq = pd.read_csv(StringIO(response.content.decode('utf-8')), sep=';')
         except UnicodeDecodeError:
-            fq = pd.read_csv(response.content, sep=';')
+            fq = pd.read_csv(StringIO(response.content.decode('ISO-8859-1')), sep=';')
         
         fq['DT_COMPTC'] = pd.to_datetime(fq['DT_COMPTC'], format=('%Y-%m-%d'))
         full_fq = pd.concat([full_fq, fq], ignore_index=True)
@@ -92,10 +92,8 @@ def read_registration_funds(headers = None,
                             verify = verify)
 
     try:
-        rf = pd.read_csv(StringIO(response.content.decode('utf-8')), sep=';')
+        rf = pd.read_csv(StringIO(response.content.decode('ISO-8859-1')), sep=';')
     except:
         rf = pd.read_csv(StringIO(response.content), sep=';')
 
     return rf
-
-

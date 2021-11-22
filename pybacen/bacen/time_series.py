@@ -91,6 +91,20 @@ def read_bacen_code(search_text: str,
                     stream = None,
                     verify = True) -> pd.core.frame.DataFrame:
 
+
+    if type(search_text) != str:
+        raise AttributeError(f'{search_text} not is str')
+    
+    if period is not None:
+        if type(period) != str:
+            raise AttributeError(f'{period} not is str')
+
+    if unit is not None:
+        if type(unit) != str:
+            raise AttributeError(f'{unit} not is str')
+
+    warn('Check the website: https://www3.bcb.gov.br/sgspub/localizarseries/localizarSeries.do?method=prepararTelaLocalizarSeries')
+
     url = 'https://raw.githubusercontent.com/RPCastro07/Bacen_Time_Series_Codes/main/series_bacen_codes.csv'
 
     request = Request()

@@ -14,8 +14,7 @@ from pybacen.utils.validators import (date_validator,
 
 from pybacen.yahoo_finance import (request_param, regular_expressions)
 
-def read_stock_quote(self, 
-                     stock_code: str or list, 
+def read_stock_quote(stock_code: str or list, 
                      start: str = None, 
                      end: str = None, 
                      as_index: bool = True, 
@@ -110,7 +109,7 @@ def read_stock_quote(self,
     else:
         raise AttributeError('Verify your stock_code: str or list')
 
-def candlestick(self, df: pd.core.frame.DataFrame, mov_avg: dict = None, template: str='plotly_dark'):
+def candlestick(df: pd.core.frame.DataFrame, mov_avg: dict = None, template: str='plotly_dark'):
     warnings.filterwarnings("ignore")
     
     def get_candlestick(df, mov_avg):
@@ -137,7 +136,7 @@ def candlestick(self, df: pd.core.frame.DataFrame, mov_avg: dict = None, templat
     for i in df['stock_code'].unique():
         get_candlestick(df[df['stock_code']== i], mov_avg)
 
-def describe(self, df: pd.core.frame.DataFrame, column_stats: str):
+def describe(df: pd.core.frame.DataFrame, column_stats: str):
 
     df = df.groupby(['stock_code'], as_index=False).agg(
         min = pd.NamedAgg(column= column_stats, aggfunc=min),
@@ -153,5 +152,5 @@ def describe(self, df: pd.core.frame.DataFrame, column_stats: str):
     df['std/avg'] = df['std'] / df['avg']
     return df
     
-def boxplot(self, df: pd.core.frame.DataFrame,  x: str = 'stock_code', y: str = 'adjclose', color: str = 'stock_code', template: str = 'plotly_dark'):
+def boxplot(df: pd.core.frame.DataFrame,  x: str = 'stock_code', y: str = 'adjclose', color: str = 'stock_code', template: str = 'plotly_dark'):
     return box(df, x = x, y = y, color = color, template = template)
