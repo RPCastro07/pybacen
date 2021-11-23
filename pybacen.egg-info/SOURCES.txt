@@ -7,7 +7,6 @@ pybacen.egg-info/dependency_links.txt
 pybacen.egg-info/requires.txt
 pybacen.egg-info/top_level.txt
 pybacen/bacen/__init__.py
-pybacen/bacen/bacen_data.py
 pybacen/bacen/open_data.py
 pybacen/bacen/time_series.py
 pybacen/cvm/__init__.py
