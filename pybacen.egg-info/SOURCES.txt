@@ -9,10 +9,11 @@ pybacen.egg-info/top_level.txt
 pybacen/bacen/__init__.py
 pybacen/bacen/bacen_data.py
 pybacen/bacen/open_data.py
-pybacen/bacen/stocks.py
 pybacen/bacen/time_series.py
 pybacen/cvm/__init__.py
 pybacen/cvm/investment_funds.py
+pybacen/tests/__init__.py
+pybacen/tests/test_pytest.py
 pybacen/utils/__init__.py
 pybacen/utils/requests.py
 pybacen/utils/validators.py
