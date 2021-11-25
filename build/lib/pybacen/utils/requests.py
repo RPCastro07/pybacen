@@ -19,7 +19,8 @@ class Request(object):
                           'hooks', 
                           'redirect_cache']
     
-    def is_connected(self):
+    @classmethod
+    def is_connected(self) -> bool:
         try:
             host = socket.gethostbyname("one.one.one.one")
             s = socket.create_connection((host, 80), 2)
@@ -28,8 +29,8 @@ class Request(object):
         except:
             pass
         return False
-        
-    def get(self, url, **kwargs):
+
+    def get(self, url, **kwargs) -> any:
         
         invalid_argument = [i for i in kwargs.keys() if i not in self.__atrib__]
 
@@ -57,5 +58,3 @@ class Request(object):
                 raise TypeError(exception)
         else:
             raise TypeError("No internet connect")
-
-        

@@ -1,6 +1,6 @@
-import pandas as pd
 from io import StringIO
-
+from pandas import DataFrame
+import pandas as pd
 from pybacen.utils.requests import Request
 from pybacen.utils.validators import (date_validator, 
                                       compare_dates,
@@ -16,7 +16,7 @@ def read_funds_quote(start: str,
                      cookies = None, 
                      hooks = None,
                      stream = None,
-                     verify = True) -> pd.core.frame.DataFrame:
+                     verify = True) -> DataFrame:
 
     date_format = '%Y-%m-%d'
     convert_format = '%Y-%m-%d'
@@ -37,7 +37,7 @@ def read_funds_quote(start: str,
 
     request = Request()
                            
-    full_fq = pd.DataFrame()
+    full_fq = DataFrame()
      
     for _date in date_ranges:
 
@@ -53,10 +53,7 @@ def read_funds_quote(start: str,
                                 stream = stream, 
                                 verify = verify)
 
-        try:
-            fq = pd.read_csv(StringIO(response.content.decode('utf-8')), sep=';')
-        except UnicodeDecodeError:
-            fq = pd.read_csv(StringIO(response.content.decode('ISO-8859-1')), sep=';')
+        fq = pd.read_csv(StringIO(response.content.decode(response.encoding)), sep=';')
         
         fq['DT_COMPTC'] = pd.to_datetime(fq['DT_COMPTC'], format=('%Y-%m-%d'))
         full_fq = pd.concat([full_fq, fq], ignore_index=True)
@@ -75,7 +72,7 @@ def read_registration_funds(headers = None,
                             cookies = None, 
                             hooks = None,
                             stream = None,
-                            verify = True) -> pd.core.frame.DataFrame:
+                            verify = True) -> DataFrame:
 
     url = f'http://dados.cvm.gov.br/dados/FI/CAD/DADOS/cad_fi.csv'
 
@@ -91,9 +88,10 @@ def read_registration_funds(headers = None,
                             stream = stream, 
                             verify = verify)
 
-    try:
-        rf = pd.read_csv(StringIO(response.content.decode('ISO-8859-1')), sep=';')
-    except:
-        rf = pd.read_csv(StringIO(response.content), sep=';')
+    rf = pd.read_csv(StringIO(response.content.decode(response.encoding)), sep=';')
 
     return rf
+
+
+
+

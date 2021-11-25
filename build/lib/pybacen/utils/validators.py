@@ -9,7 +9,6 @@ def date_validator(date: str, format: str, format_converter: str) -> str:
     except ValueError:
         raise ValueError(f"time data '{date}' does not match format '{format}'")
 
-
 def compare_dates(start: str, end: str, format: str) -> str:
     try:
 
@@ -33,5 +32,5 @@ def to_date(date: str, format: str, format_converter: str) -> str:
     except ValueError:
         raise ValueError(f"time data '{date}' does not match format '{format}'")
 
-def sysdate(format):
+def sysdate(format: str) -> str:
     return datetime.now().strftime(format)

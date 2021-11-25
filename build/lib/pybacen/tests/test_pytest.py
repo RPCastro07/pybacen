@@ -1,2 +1,3 @@
-def test_meu_primeiro_teste():
+def test_request_time_series():
     assert True
+
