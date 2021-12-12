@@ -1,7 +1,8 @@
 from os import getcwd
 from datetime import datetime
 from warnings import filterwarnings, warn
-import pandas as pd 
+import pandas as pd
+from pandas import DataFrame
 import json
 from plotly.graph_objects import Figure, Scatter
 from io import StringIO
@@ -15,54 +16,64 @@ def read_time_series(bacen_code: int,
                     start: str = None, 
                     end: str = None, 
                     as_index: bool = True,
-                    headers = None,
-                    auth = None,
-                    proxies = None, 
-                    cert = None, 
-                    cookies = None, 
-                    hooks = None,
-                    stream = None,
-                    verify = True) -> pd.core.frame.DataFrame:
+                    headers = None, 
+                    auth = None, 
+                    proxy = None,
+                    proxy_auth= None,
+                    cookies = None,                                       
+                    ssl= None,
+                    verify_ssl = None) -> DataFrame:
 
-    date_format = '%Y-%m-%d'
-    convert_format = '%d/%m/%Y'
+    _DATE_FORMAT = '%Y-%m-%d'
+    _CONVERT_FORMAT = '%d/%m/%Y'
 
     if start is not None:
-        _start = date_validator(start, format = date_format, format_converter = convert_format)
+        _start = date_validator(start, format = _DATE_FORMAT, format_converter = _CONVERT_FORMAT)
         _start = f'&dataInicial={_start}'
 
     else:
         _start = ''
 
     if end is not None:
-        _end = date_validator(end, format = date_format, format_converter = convert_format)
+        _end = date_validator(end, format = _DATE_FORMAT, format_converter = _CONVERT_FORMAT)
         _end = f'&dataFinal={_end}'
     elif _start != '':
-        _end = sysdate(convert_format)
+        _end = sysdate(_CONVERT_FORMAT)
         _end = f'&dataFinal={_end}'
     else:
         _end = ''
 
     if start is not None and end is not None: 
-        compare_dates(start, end, date_format)
+        compare_dates(start, end, _DATE_FORMAT)
 
     url = f'http://api.bcb.gov.br/dados/serie/bcdata.sgs.{str(bacen_code)}/dados?formato=json{_start}{_end}'
-
+    
     request = Request()
 
-    response = request.get(url, 
-                           headers = headers, 
-                           auth = auth, 
-                           proxies = proxies, 
-                           cert = cert, 
-                           cookies = cookies,
-                           hooks = hooks, 
-                           stream = stream, 
-                           verify = verify)
+    try:                
+        _response = request.get(urls = [url],
+                                 headers = headers, 
+                                 auth = auth, 
+                                 proxy = proxy,
+                                 proxy_auth=proxy_auth,
+                                 cookies = cookies,                                       
+                                 ssl= ssl,
+                                 verify_ssl = verify_ssl)
+    except Exception as exception:
+        raise TypeError(exception)
 
-    json_resp = json.loads(response.content)
+    _content = json.loads(_response[0][1])
+    _URL = _response[0][0]
+    _STATUS_CODE = _response[0][2]
+    _CONTENT_TYPE = _response[0][3]
 
-    ts = pd.DataFrame(json_resp)
+    if 'application/json' not in _CONTENT_TYPE:
+        raise TypeError(f"Invalid content type ('application/json' not in {_CONTENT_TYPE})")
+        
+    elif 200 >= _STATUS_CODE >= 299:
+        raise TypeError(f"Status code ({_STATUS_CODE})")
+                
+    ts = pd.DataFrame(_content)
 
     ts = ts.rename(columns={'data': 'date', 'valor': 'value'})
 
@@ -72,7 +83,6 @@ def read_time_series(bacen_code: int,
 
     if as_index == True:
         ts.set_index('date', inplace=True)
-        #ts.drop('data', inplace=True, axis=1)
     else:
         pass
         
@@ -82,14 +92,13 @@ def read_time_series(bacen_code: int,
 def read_bacen_code(search_text: str, 
                     period: str = None, 
                     unit: str = None,
-                    headers = None,
-                    auth = None,
-                    proxies = None, 
-                    cert = None, 
-                    cookies = None, 
-                    hooks = None,
-                    stream = None,
-                    verify = True) -> pd.core.frame.DataFrame:
+                    headers = None, 
+                    auth = None, 
+                    proxy = None,
+                    proxy_auth= None,
+                    cookies = None,                                       
+                    ssl= None,
+                    verify_ssl = None) -> DataFrame:
 
 
     if type(search_text) != str:
@@ -109,17 +118,30 @@ def read_bacen_code(search_text: str,
 
     request = Request()
 
-    response = request.get(url, 
-                           headers = headers, 
-                           auth = auth, 
-                           proxies = proxies, 
-                           cert = cert, 
-                           cookies = cookies,
-                           hooks = hooks, 
-                           stream = stream, 
-                           verify = verify)
+    try:                
+        _response = request.get([url],
+                                 headers = headers, 
+                                 auth = auth, 
+                                 proxy = proxy,
+                                 proxy_auth=proxy_auth,
+                                 cookies = cookies,                                       
+                                 ssl= ssl,
+                                 verify_ssl = verify_ssl)
+    except Exception as exception:
+        raise TypeError(exception)
 
-    result = pd.read_csv(StringIO(response.content.decode('cp1252')), encoding='cp1252')
+    _content = str(_response[0][1], 'ISO-8859-1')
+    _URL = _response[0][0]
+    _STATUS_CODE = _response[0][2]
+    _CONTENT_TYPE = _response[0][3]
+
+    if 'text/plain' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
+        raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
+        
+    elif 200 >= _STATUS_CODE >= 299:
+        raise TypeError(f"Status code ({_STATUS_CODE})")
+
+    result = pd.read_csv(StringIO(_content), encoding='cp1252')
 
     if search_text is not None:
         if search_text != '':
@@ -171,3 +193,4 @@ def line_plot(dfs: list, title: str, xtitle: str = 'Date', ytitle: str = 'Values
                                 )
                         )
     fig.show() 
+

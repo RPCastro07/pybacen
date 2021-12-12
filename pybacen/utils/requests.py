@@ -1,8 +1,36 @@
 import os
-from typing import Dict
-import requests
-import socket
+import asyncio
+import warnings
+from typing import Dict, List
+import codecs
 import json
+import re
+import socket
+import aiohttp
+from io import StringIO, BytesIO
+import nest_asyncio
+import numpy as np
+
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Coroutine,
+    FrozenSet,
+    Generator,
+    Generic,
+    Iterable,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
+
+nest_asyncio.apply()
 
 class Request(object):
 
@@ -30,29 +58,58 @@ class Request(object):
             pass
         return False
 
-    def get(self, url, **kwargs) -> any:
-        
-        invalid_argument = [i for i in kwargs.keys() if i not in self.__atrib__]
+    @classmethod
+    def get_tasks(self, session, urls: list, *args, **kwargs) -> any:
+        tasks = []
 
-        if len(invalid_argument) > 0:
-            raise TypeError(f"Invalid arguments: {', '.join(invalid_argument)}")
+        for url in urls:
+            tasks.append(session.get(url, *args, **kwargs))
+        return tasks
 
+    def get(self, urls: List, *args, **kwargs) -> any:
+
+        _async_responses = []
+
+        async def async_get(urls, **kwargs: Optional[Any]):
+
+            async with aiohttp.ClientSession() as session:
+                
+                try:
+                    tasks = self.get_tasks(session= session, urls=urls, **kwargs)
+                except Exception as exception:
+                    raise TypeError(exception)
+
+                #responses = []
+                #for f in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc='Processing: '):
+                #    responses.append(await f)
+                
+                responses = await asyncio.gather(*tasks)
+                
+                for _response in responses:
+
+                    _result = []
+
+                    _result.append(_response.url)
+
+                    if 'application/json' in _response.headers['content-type']:
+                        _result.append(await _response.text()) 
+                    elif 'text/csv' in _response.headers['content-type'] \
+                      or 'text/plain' in _response.headers['content-type'] \
+                      or 'application/octet-stream' in _response.headers['content-type']:
+                      _result.append(await _response.content.read())
+
+                    _result.append(_response.status)
+                    _result.append(_response.headers['content-type'])
+                    
+                    _async_responses.append(_result)
+                          
         if self.is_connected():
-            try:
-                response = requests.get(url = url, 
-                                        headers = kwargs.get('headers'),
-                                        auth = kwargs.get('auth'),
-                                        proxies = kwargs.get('proxies'), 
-                                        cert = kwargs.get('cert'), 
-                                        cookies = kwargs.get('cookies'), 
-                                        hooks = kwargs.get('hooks'),
-                                        stream = kwargs.get('stream'),
-                                        verify = kwargs.get('verify'))
 
-                if response.ok:
-                    return response
-                else:
-                    response.raise_for_status()
+            try:
+                 
+                asyncio.run(async_get(urls, **kwargs))
+
+                return np.array(_async_responses)
 
             except Exception as exception:
                 raise TypeError(exception)

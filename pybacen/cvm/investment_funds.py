@@ -9,14 +9,13 @@ from pybacen.utils.validators import (date_validator,
 
 def read_funds_quote(start: str, 
                      end: str,
-                     headers = None,
-                     auth = None,
-                     proxies = None, 
-                     cert = None, 
-                     cookies = None, 
-                     hooks = None,
-                     stream = None,
-                     verify = True) -> DataFrame:
+                     headers = None, 
+                     auth = None, 
+                     proxy = None,
+                     proxy_auth= None,
+                     cookies = None,                                       
+                     ssl= None,
+                     verify_ssl = None) -> DataFrame:
 
     date_format = '%Y-%m-%d'
     convert_format = '%Y-%m-%d'
@@ -39,59 +38,87 @@ def read_funds_quote(start: str,
                            
     full_fq = DataFrame()
      
-    for _date in date_ranges:
-
-        url = f'http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_{_date.year}{_date.month}.csv'
+    _URL_BASE = 'http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_'
         
-        response = request.get(url,
-                                headers = headers, 
-                                auth = auth, 
-                                proxies = proxies, 
-                                cert = cert, 
-                                cookies = cookies,
-                                hooks = hooks, 
-                                stream = stream, 
-                                verify = verify)
-
-        fq = pd.read_csv(StringIO(response.content.decode(response.encoding)), sep=';')
+    url = [f'{_URL_BASE}{_date.year}{_date.month}.csv' for _date in date_ranges]
         
-        fq['DT_COMPTC'] = pd.to_datetime(fq['DT_COMPTC'], format=('%Y-%m-%d'))
-        full_fq = pd.concat([full_fq, fq], ignore_index=True)
-    
+    try:                
+        _responses = request.get(url,
+                                 headers = headers, 
+                                 auth = auth, 
+                                 proxy = proxy,
+                                 proxy_auth=proxy_auth,
+                                 cookies = cookies,                                       
+                                 ssl= ssl,
+                                 verify_ssl = verify_ssl)
+    except Exception as exception:
+        raise TypeError(exception)
+
+    for _response in _responses:
+        _content = str(_response[1], 'ISO-8859-1')
+        _URL = _response[0]
+        _STATUS_CODE = _response[2]
+        _CONTENT_TYPE = _response[3]
+
+        if 'text/plain' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
+            raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
+            
+        elif 200 >= _STATUS_CODE >= 299:
+            raise TypeError(f"Status code ({_STATUS_CODE})")
+
+        result = pd.read_csv(StringIO(_content), sep=';', encoding='ISO-8859-1')
+
+        result['DT_COMPTC'] = pd.to_datetime(result['DT_COMPTC'], format=('%Y-%m-%d'))
+        
+        full_fq = full_fq.append(result, ignore_index=True)
+
     start = start if start is not None else full_fq['DT_COMPTC'].min()
     end = end if end is not None else full_fq['DT_COMPTC'].max()
 
     full_fq = full_fq[(full_fq['DT_COMPTC']>=start) & (full_fq['DT_COMPTC']<=end)].copy()
          
-    return full_fq
+    return result
 
-def read_registration_funds(headers = None,
-                            auth = None,
-                            proxies = None, 
-                            cert = None, 
-                            cookies = None, 
-                            hooks = None,
-                            stream = None,
-                            verify = True) -> DataFrame:
+def read_registration_funds(active_funds = True,
+                            headers = None, 
+                            auth = None, 
+                            proxy = None,
+                            proxy_auth= None,
+                            cookies = None,                                       
+                            ssl= None,
+                            verify_ssl = None) -> DataFrame:
 
     url = f'http://dados.cvm.gov.br/dados/FI/CAD/DADOS/cad_fi.csv'
 
     request = Request()
 
-    response = request.get(url,
-                            headers = headers, 
-                            auth = auth, 
-                            proxies = proxies, 
-                            cert = cert, 
-                            cookies = cookies,
-                            hooks = hooks, 
-                            stream = stream, 
-                            verify = verify)
+    try:                
+        _response = request.get([url],
+                                 headers = headers, 
+                                 auth = auth, 
+                                 proxy = proxy,
+                                 proxy_auth=proxy_auth,
+                                 cookies = cookies,                                       
+                                 ssl= ssl,
+                                 verify_ssl = verify_ssl)
+    except Exception as exception:
+        raise TypeError(exception)
 
-    rf = pd.read_csv(StringIO(response.content.decode(response.encoding)), sep=';')
+    _content = str(_response[0][1], 'ISO-8859-1')
+    _URL = _response[0][0]
+    _STATUS_CODE = _response[0][2]
+    _CONTENT_TYPE = _response[0][3]
 
-    return rf
+    if 'text/plain' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
+        raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
+        
+    elif 200 >= _STATUS_CODE >= 299:
+        raise TypeError(f"Status code ({_STATUS_CODE})")
 
+    result = pd.read_csv(StringIO(_content), sep=';', encoding='cp1252')
 
+    if active_funds == True:
+        result = result[result['SIT']=='EM FUNCIONAMENTO NORMAL'].copy()
 
+    return result
 
