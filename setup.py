@@ -9,7 +9,7 @@ here = pathlib.Path(__file__).parent.resolve()
 setup(
  
     name='pybacen',  # Required
-    version='1.1.1',  # Required
+    version='1.1.2',  # Required
     description='Economic analysis in the Brazilian scenario',  # Optional
     #long_description=long_description,
     author='Rafael Pereira de Castro',  # Optional
@@ -36,6 +36,6 @@ setup(
 
     python_requires='>=3.6, <4',
 
-    install_requires=['pandas', 'requests', 'plotly'],  # Optional
+    install_requires=['pandas', 'numpy', 'aiohttp', 'nest_asyncio', 'plotly'],  # Optional
 
 )
