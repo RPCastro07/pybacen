@@ -62,7 +62,6 @@ def read_time_series(bacen_code: int,
     except Exception as exception:
         raise TypeError(exception)
 
-    _content = json.loads(_response[0][1])
     _URL = _response[0][0]
     _STATUS_CODE = _response[0][2]
     _CONTENT_TYPE = _response[0][3]
@@ -70,9 +69,11 @@ def read_time_series(bacen_code: int,
     if 'application/json' not in _CONTENT_TYPE:
         raise TypeError(f"Invalid content type ('application/json' not in {_CONTENT_TYPE})")
         
-    elif 200 >= _STATUS_CODE >= 299:
+    elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
         raise TypeError(f"Status code ({_STATUS_CODE})")
-                
+
+    _content = json.loads(_response[0][1])
+
     ts = pd.DataFrame(_content)
 
     ts = ts.rename(columns={'data': 'date', 'valor': 'value'})
@@ -130,7 +131,6 @@ def read_bacen_code(search_text: str,
     except Exception as exception:
         raise TypeError(exception)
 
-    _content = str(_response[0][1], 'ISO-8859-1')
     _URL = _response[0][0]
     _STATUS_CODE = _response[0][2]
     _CONTENT_TYPE = _response[0][3]
@@ -138,8 +138,10 @@ def read_bacen_code(search_text: str,
     if 'text/plain' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
         raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
         
-    elif 200 >= _STATUS_CODE >= 299:
+    elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
         raise TypeError(f"Status code ({_STATUS_CODE})")
+
+    _content = str(_response[0][1], 'ISO-8859-1')
 
     result = pd.read_csv(StringIO(_content), encoding='cp1252')
 

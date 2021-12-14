@@ -85,12 +85,15 @@ class Request(object):
 
                     _result.append(_response.url)
 
-                    if 'application/json' in _response.headers['content-type']:
-                        _result.append(await _response.text()) 
-                    elif 'text/csv' in _response.headers['content-type'] \
-                      or 'text/plain' in _response.headers['content-type'] \
-                      or 'application/octet-stream' in _response.headers['content-type']:
-                      _result.append(await _response.content.read())
+                    try:
+                        if 'application/json' in _response.headers['content-type']:
+                            _result.append(await _response.text()) 
+                        elif 'text/csv' in _response.headers['content-type'] \
+                        or 'text/plain' in _response.headers['content-type'] \
+                        or 'application/octet-stream' in _response.headers['content-type']:
+                            _result.append(await _response.content.read())
+                    except:
+                        _result.append(None)
 
                     _result.append(_response.status)
                     _result.append(_response.headers['content-type'])

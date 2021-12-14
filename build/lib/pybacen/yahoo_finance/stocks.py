@@ -71,22 +71,22 @@ def read_stock_quote(stock_code: Union[list, str],
         end_ts = int(to_timestamp(end, date_format))
         period = f'period2={end_ts}'
 
-    #type_validation = lambda x: [x] if type(x) == str else x if type(x) == list else None
+    type_validation = lambda x: [x] if type(x) == str else x if type(x) == list else None
 
-    #stock_code = type_validation(stock_code)
+    stock_code = type_validation(stock_code)
 
     if stock_code is not None:
         _BASE_URL = 'https://query2.finance.yahoo.com/v8/finance/chart/'
 
         urls = [f'{_BASE_URL}{stocks}?{period}&interval={interval}&events=history&includeAdjustedClose=true' for stocks in stock_code]
 
-        request = Request()
-
         headers = request_param.USER_AGENT if headers is None else headers
     else:
         raise AttributeError('Verify your stock_code: str or list')
 
     if stock_code is not None:
+        
+        request = Request()
 
         full_quote = pd.DataFrame()
 
@@ -107,19 +107,19 @@ def read_stock_quote(stock_code: Union[list, str],
 
         for _iterator, _response in enumerate(_responses):
 
-            _content = json.loads(_response[1])
-
             _URL = _response[0]
             _STATUS_CODE = _response[2]
             _CONTENT_TYPE = _response[3]
 
             if 'application/json' not in _CONTENT_TYPE:
-                warn(f"{stock_code[_iterator]}: Invalid content type ('application/json' not in {_CONTENT_TYPE})")
+                warn(f"{stock_code[int(_iterator)]}: Invalid content type ('application/json' not in {_CONTENT_TYPE})")
                 continue
-
-            elif 200 >= _STATUS_CODE >= 299:
+    
+            elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
                 warn(f"{stock_code[_iterator]}: Status code ({_STATUS_CODE})")
                 continue
+            
+            _content = json.loads(_response[1])
             
             if _content['chart']['error'] is None:
 

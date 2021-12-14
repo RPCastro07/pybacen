@@ -9,7 +9,7 @@ here = pathlib.Path(__file__).parent.resolve()
 setup(
  
     name='pybacen',  # Required
-    version='1.1.2',  # Required
+    version='1.1.3',  # Required
     description='Economic analysis in the Brazilian scenario',  # Optional
     #long_description=long_description,
     author='Rafael Pereira de Castro',  # Optional

@@ -55,7 +55,7 @@ def read_funds_quote(start: str,
         raise TypeError(exception)
 
     for _response in _responses:
-        _content = str(_response[1], 'ISO-8859-1')
+
         _URL = _response[0]
         _STATUS_CODE = _response[2]
         _CONTENT_TYPE = _response[3]
@@ -63,8 +63,10 @@ def read_funds_quote(start: str,
         if 'text/plain' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
             raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
             
-        elif 200 >= _STATUS_CODE >= 299:
+        elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
             raise TypeError(f"Status code ({_STATUS_CODE})")
+
+        _content = str(_response[1], 'ISO-8859-1')
 
         result = pd.read_csv(StringIO(_content), sep=';', encoding='ISO-8859-1')
 
@@ -104,7 +106,6 @@ def read_registration_funds(active_funds = True,
     except Exception as exception:
         raise TypeError(exception)
 
-    _content = str(_response[0][1], 'ISO-8859-1')
     _URL = _response[0][0]
     _STATUS_CODE = _response[0][2]
     _CONTENT_TYPE = _response[0][3]
@@ -112,8 +113,10 @@ def read_registration_funds(active_funds = True,
     if 'text/plain' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
         raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
         
-    elif 200 >= _STATUS_CODE >= 299:
+    elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
         raise TypeError(f"Status code ({_STATUS_CODE})")
+
+    _content = str(_response[0][1], 'ISO-8859-1')
 
     result = pd.read_csv(StringIO(_content), sep=';', encoding='cp1252')
 

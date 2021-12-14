@@ -36,7 +36,6 @@ def read_bacen_complaints(year: int,
     except Exception as exception:
         raise TypeError(exception)
 
-    _content = str(_response[0][1], 'ISO-8859-1')
     _URL = _response[0][0]
     _STATUS_CODE = _response[0][2]
     _CONTENT_TYPE = _response[0][3]
@@ -44,8 +43,10 @@ def read_bacen_complaints(year: int,
     if 'application/octet-stream' not in _CONTENT_TYPE and 'text/csv' not in _CONTENT_TYPE:
         raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not in ['text/csv', 'text/plain'])")
         
-    elif 200 >= _STATUS_CODE >= 299:
+    elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
         raise TypeError(f"Status code ({_STATUS_CODE})")
+
+    _content = str(_response[0][1], 'ISO-8859-1')
 
     result = pd.read_csv(StringIO(_content), sep=';', encoding='cp1252')
 
@@ -152,8 +153,6 @@ def read_currency_quote(currency: str = 'USD',
                                  verify_ssl = verify_ssl)
     except Exception as exception:
         raise TypeError(exception)
-
-    _content = json.loads(_responses[0][1])['value']
     
     _URL = _responses[0][0]
     _STATUS_CODE = _responses[0][2]
@@ -162,8 +161,10 @@ def read_currency_quote(currency: str = 'USD',
     if 'application/json' not in _CONTENT_TYPE:
         raise TypeError(f"Invalid content type ({_CONTENT_TYPE} not equals 'application/json')")
         
-    elif 200 >= _STATUS_CODE >= 299:
+    elif _STATUS_CODE < 200 or _STATUS_CODE > 299:
         raise TypeError(f"Status code ({_STATUS_CODE})")
+
+    _content = json.loads(_responses[0][1])['value']
 
     ct = pd.DataFrame(_content)
 

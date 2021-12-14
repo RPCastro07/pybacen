@@ -1,21 +1,10 @@
-import os
 import asyncio
-import warnings
-from typing import Dict, List
-import codecs
-import json
-import re
-import socket
-import aiohttp
-from io import StringIO, BytesIO
-import nest_asyncio
-import numpy as np
-
 from typing import (
     Any,
     Awaitable,
     Callable,
     Coroutine,
+    Dict,
     FrozenSet,
     Generator,
     Generic,
@@ -29,6 +18,11 @@ from typing import (
     TypeVar,
     Union,
 )
+import socket
+import aiohttp
+from io import StringIO, BytesIO
+import nest_asyncio
+import numpy as np
 
 nest_asyncio.apply()
 
@@ -91,12 +85,15 @@ class Request(object):
 
                     _result.append(_response.url)
 
-                    if 'application/json' in _response.headers['content-type']:
-                        _result.append(await _response.text()) 
-                    elif 'text/csv' in _response.headers['content-type'] \
-                      or 'text/plain' in _response.headers['content-type'] \
-                      or 'application/octet-stream' in _response.headers['content-type']:
-                      _result.append(await _response.content.read())
+                    try:
+                        if 'application/json' in _response.headers['content-type']:
+                            _result.append(await _response.text()) 
+                        elif 'text/csv' in _response.headers['content-type'] \
+                        or 'text/plain' in _response.headers['content-type'] \
+                        or 'application/octet-stream' in _response.headers['content-type']:
+                            _result.append(await _response.content.read())
+                    except:
+                        _result.append(None)
 
                     _result.append(_response.status)
                     _result.append(_response.headers['content-type'])
